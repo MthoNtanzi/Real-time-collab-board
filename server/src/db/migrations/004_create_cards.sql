@@ -1,0 +1,12 @@
+CREATE TABLE IF NOT EXISTS cards (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title VARCHAR(255) NOT NULL,
+  description TEXT,
+  due_date TIMESTAMPTZ,
+  position FLOAT NOT NULL DEFAULT 0,
+  list_id UUID NOT NULL REFERENCES lists(id) ON DELETE CASCADE,
+  board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  created_by UUID NOT NULL REFERENCES users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);

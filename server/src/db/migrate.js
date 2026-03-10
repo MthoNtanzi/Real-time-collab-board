@@ -1,20 +1,26 @@
-const { Pool } = require("pg");
+require("dotenv").config({ path: "../.env" });
+const fs = require("fs");
+const path = require("path");
+const pool = require("./index");
 
-const pool = new Pool({
-  host: process.env.DB_HOST || "localhost",
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || "kanban_db",
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+const migrationsDir = path.join(__dirname, "migrations");
+
+async function runMigrations() {
+    const files = fs.readdirSync(migrationsDir).sort();
+
+    for (const file of files) {
+        if (!file.endsWith(".sql")) continue;
+        const sql = fs.readFileSync(path.join(migrationsDir, file), "utf8");
+        console.log(`Running migration: ${file}`);
+        await pool.query(sql);
+        console.log(`✓ ${file}`);
+    }
+
+    console.log("All migrations complete.");
+    await pool.end();
+}
+
+runMigrations().catch((err) => {
+  console.error("Migration failed:", err);
+  process.exit(1);
 });
-
-pool.on("connect", () => {
-  console.log("Connected to PostgreSQL");
-});
-
-pool.on("error", (err) => {
-  console.error("Unexpected PostgreSQL error", err);
-  process.exit(-1);
-});
-
-module.exports = pool;
