@@ -1,0 +1,7 @@
+CREATE TABLE IF NOT EXISTS board_members (
+  board_id UUID NOT NULL REFERENCES boards(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role VARCHAR(20) NOT NULL DEFAULT 'member',
+  joined_at TIMESTAMPTZ DEFAULT NOW(),
+  PRIMARY KEY (board_id, user_id)
+);
