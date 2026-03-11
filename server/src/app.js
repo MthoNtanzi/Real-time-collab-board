@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const authRoutes = require("./routes/authRoutes");
 
 const app = express();
 
@@ -12,5 +13,7 @@ app.use(express.json());
 
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
+
+app.use("/api/auth", authRoutes);
 
 module.exports = app;
