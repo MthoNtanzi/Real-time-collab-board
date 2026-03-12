@@ -16,7 +16,7 @@ const Board = {
     async findbyId(id) {
         const { rows } = await pool.query(
             `SELECT b.* bm.role
-            FROM boards
+            FROM boards b
             JOIN board_members bm ON bm.board_id = b.id
             WHERE b.id = $1`,
             [id]
@@ -86,7 +86,7 @@ const Board = {
 
             await client.query(`INSERT INTO board_members (board_id, user_id, role)
                 VALUES ($1, $2, 'owner')`,
-                [board, ownerId]
+                [board.id, ownerId]
             );
 
             await client.query("COMMIT");

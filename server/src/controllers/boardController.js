@@ -1,5 +1,4 @@
-const Board = require("../models/board");
-const User = require("../models/User");
+const Board = require("../models/Board");
 
 const getBoards = async (req, res) => {
     const boards = await Board.findAllByUser(req.user.id);
@@ -71,7 +70,12 @@ const deleteBoard = async (req, res) => {
 const createInvite = async (req, res) => {
     const { id } = req.params;
 
-    const membership = Board.isMember(id, req.user.id);
+    const membership = await Board.isMember(id, req.user.id);
+
+    console.log("membership:", membership);
+    console.log("user id:", req.user.id);
+    console.log("board id:", id);
+
     if (!membership || membership.role !== "owner") {
         return res.status(403).json({ error: "Only the board owner can create invite links" });
     }
@@ -79,8 +83,8 @@ const createInvite = async (req, res) => {
     const invite = await Board.createInvite(id, req.user.id);
 
     res.status(201).json({
-        inviteURL: `${process.env.CLIENT_URL}/invite/${invite.token}`,
-        expiresAt: invite.expiresAt,
+        inviteUrl: `${process.env.CLIENT_URL}/invite/${invite.token}`,
+        expiresAt: invite.expires_at,
     });
 };
 
