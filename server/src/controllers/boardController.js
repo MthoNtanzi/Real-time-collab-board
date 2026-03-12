@@ -11,7 +11,7 @@ const getBoard = async (req, res) => {
 
     const membership = await Board.isMember(id, req.user.id);
     if (!membership) {
-        return res.status(403).json({error: "Access denied"})
+        return res.status(403).json({ error: "Access denied" })
     }
 
     const board = await Board.findIdWithLists(id);
@@ -83,4 +83,35 @@ const createInvite = async (req, res) => {
         expiresAt: invite.expiresAt,
     });
 };
+
+const joinBoard = async (req, res) => {
+    const { token } = req.params;
+
+    const invite = await Board.findInvite(token);
+    if (!invite) {
+        return res.status(400).json({ error: "Invite link i invalid or has expired" });
+    }
+
+    const existingMembership = await Board.isMember(invite.board_id, req.usesr.id);
+    if (existingMembership) {
+        return res.status(409).json({ error: "You are already a member of this board" })
+    }
+
+    await Board.addMember(invite.board_id, req.user.id);
+    await Board.useInvite(token);
+
+    const board = await Board.findIdWithLists(invite.board_id);
+
+    res.json({ message: "Successfully joined board", board });
+}
+
+module.exports = {
+    getBoards,
+    getBoard,
+    createBoard,
+    updateBoard,
+    deleteBoard,
+    createInvite,
+    joinBoard,
+}
 
