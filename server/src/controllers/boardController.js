@@ -1,0 +1,86 @@
+const Board = require("../models/board");
+const User = require("../models/User");
+
+const getBoards = async (req, res) => {
+    const boards = await Board.findAllByUser(req.user.id);
+    res.json(boards);
+};
+
+const getBoard = async (req, res) => {
+    const { id } = req.params;
+
+    const membership = await Board.isMember(id, req.user.id);
+    if (!membership) {
+        return res.status(403).json({error: "Access denied"})
+    }
+
+    const board = await Board.findIdWithLists(id);
+    if (!board) {
+        return res.status(404).json({ error: "Board not found" });
+    }
+
+    res.json(board);
+}
+
+const createBoard = async (req, res) => {
+    const { name, description, backgroundColor } = req.body;
+
+    if (!name) {
+        return res.status(400).json({ error: "Board name is required" });
+    }
+
+    const board = await Board.create({
+        name,
+        description,
+        backgroundColor,
+        ownerId: req.user.id,
+    });
+
+    res.status(201).json(board);
+};
+
+const updateBoard = async (req, res) => {
+    const { id } = req.params;
+    const { name, description, backgroundColor } = req.body;
+
+    const membership = await Board.isMember(id, req.user.id);
+    if (!membership) {
+        return res.status(403).json({ error: "Access denied" });
+    }
+
+    const board = await Board.update(id, { name, description, backgroundColor });
+    if (!board) {
+        return res.status(404).json({ error: "Board not found" });
+    }
+
+    res.json(board);
+};
+
+const deleteBoard = async (req, res) => {
+    const { id } = req.params;
+
+    const membership = await Board.isMember(id, req.user.id);
+    if (!membership || membership.role !== "owner") {
+        return res.status(403).json({ error: "Only the board owner can delete it" });
+    }
+
+    await Board.delete(id);
+    res.json({ message: "Board deleted" });
+};
+
+const createInvite = async (req, res) => {
+    const { id } = req.params;
+
+    const membership = Board.isMember(id, req.user.id);
+    if (!membership || membership.role !== "owner") {
+        return res.status(403).json({ error: "Only the board owner can create invite links" });
+    }
+
+    const invite = await Board.createInvite(id, req.user.id);
+
+    res.status(201).json({
+        inviteURL: `${process.env.CLIENT_URL}/invite/${invite.token}`,
+        expiresAt: invite.expiresAt,
+    });
+};
+
