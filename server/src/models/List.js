@@ -2,7 +2,7 @@ const pool = require("../db");
 const { findbyId } = require("./Board");
 
 const List = {
-    async findbyId(id) {
+    async findById(id) {
         const { rows } = await pool.query(
             `SELECT * FROM lists WHERE id = $1`,
             [id]
