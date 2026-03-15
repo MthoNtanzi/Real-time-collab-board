@@ -96,7 +96,7 @@ const joinBoard = async (req, res) => {
         return res.status(400).json({ error: "Invite link i invalid or has expired" });
     }
 
-    const existingMembership = await Board.isMember(invite.board_id, req.usesr.id);
+    const existingMembership = await Board.isMember(invite.board_id, req.user.id);
     if (existingMembership) {
         return res.status(409).json({ error: "You are already a member of this board" })
     }
