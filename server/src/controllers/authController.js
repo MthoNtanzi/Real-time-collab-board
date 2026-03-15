@@ -53,4 +53,12 @@ const login = async (req, res) => {
     res.status(200).json({ user, token });
 };
 
-module.exports = { register, login };
+const me = async (req, res) => {
+    const user = await User.findById(req.user.id);
+    if (!user) {
+        return res.status(404).json({ error: "User not found" });
+    }
+    res.json(user);
+};
+
+module.exports = { register, login, me };
