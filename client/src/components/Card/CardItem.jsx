@@ -1,9 +1,26 @@
 import { useState } from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import useBoardStore from "../../store/boardStore";
 
 export default function CardItem({ card, listId }) {
     const [showDelete, setShowDelete] = useState(false);
     const deleteCard = useBoardStore((state) => state.deleteCard);
+
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging,
+    } = useSortable({ id: card.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0.5 : 1,
+    };
 
     const handleDelete = async (e) => {
         e.stopPropagation();
@@ -13,7 +30,11 @@ export default function CardItem({ card, listId }) {
 
     return (
         <div
-            className="bg-blue-800 border border-white/10 rounded-lg p-3 cursor-pointer hover:border-indigo-500/50 transition-all group"
+            ref={setNodeRef}
+            style={style}
+            {...attributes}
+            {...listeners}
+            className={`bg-blue-800 border border-white/10 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-indigo-500/50 transition-all group ${isDragging ? "shadow-lg shadow-indigo-500/20" : ""}`}
             onMouseEnter={() => setShowDelete(true)}
             onMouseLeave={() => setShowDelete(false)}
         >
@@ -22,6 +43,7 @@ export default function CardItem({ card, listId }) {
                 {showDelete && (
                     <button
                         onClick={handleDelete}
+                        onPointerDown={(e) => e.stopPropagation()}
                         className="text-gray-400 hover:text-red-400 transition-colors flex-shrink-0"
                     >
                         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

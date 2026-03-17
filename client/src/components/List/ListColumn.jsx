@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import useBoardStore from "../../store/boardStore";
 import CardItem from "../Card/CardItem";
 
@@ -7,6 +9,10 @@ export default function ListColumn({ list, boardId }) {
     const [cardTitle, setCardTitle] = useState("");
     const createCard = useBoardStore((state) => state.createCard);
     const deleteList = useBoardStore((state) => state.deleteList);
+
+    const { setNodeRef: setDroppableRef } = useDroppable({
+        id: list.id,
+    });
 
     const handleAddCard = async (e) => {
         e.preventDefault();
@@ -40,10 +46,15 @@ export default function ListColumn({ list, boardId }) {
             </div>
 
             {/* Cards */}
-            <div className="flex-1 overflow-y-auto py-3 flex flex-col gap-2">
-                {list.cards.map((card) => (
-                    <CardItem key={card.id} card={card} listId={list.id} />
-                ))}
+            <div ref={setDroppableRef} className="flex-1 overflow-y-auto py-3 flex flex-col gap-2">
+                <SortableContext
+                    items={list.cards.map((c) => c.id)}
+                    strategy={verticalListSortingStrategy}
+                >
+                    {list.cards.map((card) => (
+                        <CardItem key={card.id} card={card} listId={list.id} />
+                    ))}
+                </SortableContext>
             </div>
 
             {/* Add Card */}
