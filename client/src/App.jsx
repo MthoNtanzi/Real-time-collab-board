@@ -10,10 +10,8 @@ import BoardPage from "./pages/BoardPage";
 import InvitePage from "./pages/InvitePage";
 
 function ProtectedRoute({ children }) {
-    const { user, isLoading } = useAuthStore((state) => ({
-        user: state.user,
-        isLoading: state.isLoading,
-    }));
+    const user = useAuthStore((state) => state.user);
+    const isLoading = useAuthStore((state) => state.isLoading);
 
     if (isLoading) {
         return (

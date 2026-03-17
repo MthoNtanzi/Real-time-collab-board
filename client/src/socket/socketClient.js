@@ -3,27 +3,42 @@ import { io } from "socket.io-client";
 let socket = null;
 
 export function getSocket() {
-    if (!socket) {
-        socket = io(import.meta.env.VITE_SOCKET_URL, {
-            auth: {
-                token: localStorage.getItem("token"),
-            },
-            autoConnect: false,
-        });
-    }
     return socket;
 }
 
 export function connectSocket() {
-    const socket = getSocket();
-    if (!socket.connected) {
-        socket.connect();
-    }
-}
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-export function disconnectSocket() {
-    if (socket && socket.connected) {
+    if (socket && socket.connected) return;
+
+    if (socket) {
         socket.disconnect();
         socket = null;
     }
+
+    socket = io(import.meta.env.VITE_SOCKET_URL, {
+        auth: { token },
+        autoConnect: true,
+        forceNew: true,
+        transports: ["websocket"],
+    });
+    // Debug connection errors
+    socket.on("connect_error", (err) => {
+        console.error("Socket connection error:", err.message);
+    });
+
+    socket.on("connect", () => {
+        console.log("Socket connected:", socket.id);
+    });
+
+    socket.on("disconnect", (reason) => {
+        console.log("Socket disconnected:", reason);
+    });
 }
+
+export function disconnectSocket() {
+    if (socket && socket.connected) socket.disconnect();
+    socket = null;
+}
+

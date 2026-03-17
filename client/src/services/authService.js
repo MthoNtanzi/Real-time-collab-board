@@ -2,20 +2,44 @@ import api from "./api";
 
 const authService = {
     async register({ name, email, password }) {
-        const { data } = await api.post("/auth/register", { name, email, password });
-        localStorage.setItem("token", data.token);
-        return data;
+        try {
+            const res = await api.post("/auth/register", { name, email, password });
+            console.log("Register response:", res.data);
+
+            const token = res.data?.token || res.data?.data?.token;
+            const user = res.data?.user || res.data?.data?.user;
+
+            if (token) localStorage.setItem("token", token);
+            return { token, user };
+        } catch (err) {
+            console.error("Registration failed:", err.response?.data || err.message);
+            return null;
+        }
     },
 
     async login({ email, password }) {
-        const { data } = await api.post("auth/login", { email, password });
-        localStorage.setItem("token", data.token);
-        return data;
+        try {
+            const res = await api.post("/auth/login", { email, password });
+            console.log("Login response:", res.data);
+
+            const token = res.data?.token || res.data?.data?.token;
+            const user = res.data?.user || res.data?.data?.user;
+
+            if (token) localStorage.setItem("token", token);
+            return { token, user };
+        } catch (err) {
+            console.error("Login failed:", err.response?.data || err.message);
+            return null;
+        }
     },
 
     async me() {
-        const { data } = await api.get("auth/me");
-        return data;
+        try {
+            const res = await api.get("/auth/me");
+            return res.data?.user || res.data;
+        } catch {
+            return null;
+        }
     },
 
     logout() {

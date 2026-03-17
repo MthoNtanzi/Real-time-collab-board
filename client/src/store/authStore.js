@@ -7,43 +7,41 @@ const useAuthStore = create((set) => ({
     isLoading: true,
     error: null,
 
-    register: async ({ name, email, password }) => {
-        set({ isLoading: true, error: null });
-        try {
-            const data = await authService.register({ name, email, password });
-            set({ user: data.user, isLoading: false });
-            connectSocket();
-        } catch (err) {
-            set({ error: err.response?.data?.error || "Registration failed", isLoading: false });
-        }
+    initAuth: async () => {
+        set({ isLoading: true });
+        const user = await authService.me();
+        if (user) connectSocket();
+        set({ user, isLoading: false });
     },
 
     login: async ({ email, password }) => {
         set({ isLoading: true, error: null });
-        try {
-            const data = await authService.login({ email, password });
-            set({ user: data.user, isLoading: false });
-            connectSocket();
-        } catch (err) {
-            set({ error: err.response?.data?.error || "Login failed", isLoading: false });
+        const data = await authService.login({ email, password });
+        if (!data) {
+            set({ error: "Invalid credentials", isLoading: false });
+            return null;
         }
+        set({ user: data.user, isLoading: false });
+        connectSocket();
+        return data.user;
+    },
+
+    register: async ({ name, email, password }) => {
+        set({ isLoading: true, error: null });
+        const data = await authService.register({ name, email, password });
+        if (!data) {
+            set({ error: "Registration failed", isLoading: false });
+            return null;
+        }
+        set({ user: data.user, isLoading: false });
+        connectSocket();
+        return data.user;
     },
 
     logout: () => {
         authService.logout();
         disconnectSocket();
         set({ user: null, error: null });
-    },
-
-    initAuth: async () => {
-        set({ isLoading: true });
-        try {
-            const user = await authService.me();
-            set({ user, isLoading: false });
-            connectSocket();
-        } catch {
-            set({ user: null, isLoading: false });
-        }
     },
 }));
 
