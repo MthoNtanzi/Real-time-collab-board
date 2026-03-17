@@ -146,18 +146,18 @@ export default function HomePage() {
                             </div>
                             <div className="flex gap-3 mt-2">
                                 <button
-                                    type="button"
-                                    onClick={() => setShowCreateModal(false)}
-                                    className="flex-1 bg-blue-800 hover:bg-blue-700 border border-white/10 transition-colors py-2.5 rounded-lg text-sm font-medium"
-                                >
-                                    Cancel
-                                </button>
-                                <button
                                     type="submit"
                                     disabled={isLoading || !boardName.trim()}
                                     className="flex-1 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors py-2.5 rounded-lg text-sm font-medium"
                                 >
                                     {isLoading ? "Creating..." : "Create board"}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    className="flex-1 bg-blue-800 hover:bg-blue-700 border border-white/10 transition-colors py-2.5 rounded-lg text-sm font-medium"
+                                >
+                                    Cancel
                                 </button>
                             </div>
                         </form>
