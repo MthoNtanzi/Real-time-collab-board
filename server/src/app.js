@@ -4,6 +4,7 @@ const authRoutes = require("./routes/authRoutes");
 const boardRoutes = require("./routes/boardRoutes");
 const listRoutes = require("./routes/listRoutes");
 const cardRoutes = require("./routes/cardRoutes");
+const commentRoutes = require("./routes/commentRoutes");
 const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/boards", boardRoutes);
 app.use("/api/lists", listRoutes);
 app.use("/api/cards", cardRoutes);
+app.use("/api", commentRoutes);
 
 app.use(errorHandler);
 
