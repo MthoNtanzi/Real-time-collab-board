@@ -1,5 +1,5 @@
 const pool = require("../db");
-const { findbyId } = require("./Board");
+const { findById } = require("./Board");
 
 const List = {
     async findById(id) {

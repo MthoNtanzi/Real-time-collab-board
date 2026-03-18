@@ -179,6 +179,43 @@ const useBoardStore = create((set, get) => ({
     clearActiveBoard: () => {
         set({ activeBoard: null, presenceUsers: [] });
     },
+
+    addComment: async (cardId, { body }) => {
+        try {
+            const comment = await cardService.createComment(cardId, { body });
+            return comment;
+        } catch (err) {
+            set({ error: err.response?.data?.error || "Failed to add comment" });
+        }
+    },
+
+    deleteComment: async (commentId) => {
+        try {
+            await cardService.deleteComment(commentId);
+        } catch (err) {
+            set({ error: err.response?.data?.error || "Failed to delete comment" });
+        }
+    },
+
+    updateCard: async (cardId, { title, description, dueDate }) => {
+        try {
+            const updated = await cardService.updateCard(cardId, { title, description, dueDate });
+            set((state) => ({
+                activeBoard: {
+                    ...state.activeBoard,
+                    lists: state.activeBoard.lists.map((list) => ({
+                        ...list,
+                        cards: list.cards.map((card) =>
+                            card.id === cardId ? { ...card, ...updated } : card
+                        ),
+                    })),
+                },
+            }));
+            return updated;
+        } catch (err) {
+            set({ error: err.response?.data?.error || "Failed to update card" });
+        }
+    },
 }));
 
 export default useBoardStore;

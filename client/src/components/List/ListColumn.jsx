@@ -4,7 +4,7 @@ import { useDroppable } from "@dnd-kit/core";
 import useBoardStore from "../../store/boardStore";
 import CardItem from "../Card/CardItem";
 
-export default function ListColumn({ list, boardId }) {
+export default function ListColumn({ list, boardId, onCardClick }) {
     const [showAddCard, setShowAddCard] = useState(false);
     const [cardTitle, setCardTitle] = useState("");
     const createCard = useBoardStore((state) => state.createCard);
@@ -52,7 +52,7 @@ export default function ListColumn({ list, boardId }) {
                     strategy={verticalListSortingStrategy}
                 >
                     {list.cards.map((card) => (
-                        <CardItem key={card.id} card={card} listId={list.id} />
+                        <CardItem key={card.id} card={card} listId={list.id} onCardClick={onCardClick} />
                     ))}
                 </SortableContext>
             </div>

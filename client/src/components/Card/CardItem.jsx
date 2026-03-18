@@ -3,7 +3,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import useBoardStore from "../../store/boardStore";
 
-export default function CardItem({ card, listId }) {
+export default function CardItem({ card, listId, onCardClick }) {
     const [showDelete, setShowDelete] = useState(false);
     const deleteCard = useBoardStore((state) => state.deleteCard);
 
@@ -37,6 +37,7 @@ export default function CardItem({ card, listId }) {
             className={`bg-blue-800 border border-white/10 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:border-indigo-500/50 transition-all group ${isDragging ? "shadow-lg shadow-indigo-500/20" : ""}`}
             onMouseEnter={() => setShowDelete(true)}
             onMouseLeave={() => setShowDelete(false)}
+            onClick={() => onCardClick({ cardId: card.id, listId })}
         >
             <div className="flex items-start justify-between gap-2">
                 <p className="text-sm text-white leading-snug">{card.title}</p>

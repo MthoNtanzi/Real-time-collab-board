@@ -27,7 +27,7 @@ const updateList = async (req, res) => {
         return res.status(400).json({ error: "Name is required" });
     }
 
-    const list = await List.findbyId(id);
+    const list = await List.findById(id);
     console.log("list:", list);
     if (!list) {
         return res.status(404).json({ error: "List not found" });
@@ -46,7 +46,7 @@ const updateList = async (req, res) => {
 const deleteList = async (req, res) => {
     const { id } = req.params;
 
-    const list = await List.findbyId(id);
+    const list = await List.findById(id);
     if (!list) {
         return res.status(404).josn({ error: "List not found" });
     }

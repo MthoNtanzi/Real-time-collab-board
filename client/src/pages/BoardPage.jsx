@@ -14,6 +14,7 @@ import {
     closestCorners,
 } from "@dnd-kit/core";
 import CardItem from "../components/Card/CardItem";
+import CardModal from "../components/Card/CardModal";
 
 export default function BoardPage() {
     const { id } = useParams();
@@ -31,6 +32,8 @@ export default function BoardPage() {
     const moveCard = useBoardStore((state) => state.moveCard);
     const [activeCard, setActiveCard] = useState(null);
     const [activeListId, setActiveListId] = useState(null);
+
+    const [selectedCard, setSelectedCard] = useState(null);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -190,7 +193,7 @@ export default function BoardPage() {
                     >
                         <div className="flex gap-4 h-full items-start">
                             {activeBoard.lists.map((list) => (
-                                <ListColumn key={list.id} list={list} boardId={id} />
+                                <ListColumn key={list.id} list={list} boardId={id} onCardClick={setSelectedCard} />
                             ))}
 
                             {/* Add List Button */}
@@ -266,6 +269,14 @@ export default function BoardPage() {
                     </div>
                 )
             }
+
+            {selectedCard && (
+                <CardModal
+                    cardId={selectedCard.cardId}
+                    listId={selectedCard.listId}
+                    onClose={() => setSelectedCard(null)}
+                />
+            )}
         </div>
     );
 }

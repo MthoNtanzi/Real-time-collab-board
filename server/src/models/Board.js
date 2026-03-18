@@ -13,7 +13,7 @@ const Board = {
         return rows;
     },
 
-    async findbyId(id) {
+    async findById(id) {
         const { rows } = await pool.query(
             `SELECT b.* bm.role
             FROM boards b

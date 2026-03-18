@@ -24,6 +24,15 @@ const cardService = {
     async deleteCard(id) {
         await api.delete(`/cards/${id}`);
     },
+
+    async createComment(cardId, { body }) {
+        const { data } = await api.post(`/cards/${cardId}/comments`, { body });
+        return data;
+    },
+
+    async deleteComment(id) {
+        await api.delete(`/comments/${id}`);
+    },
 };
 
 export default cardService;
