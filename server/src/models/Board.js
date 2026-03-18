@@ -154,7 +154,7 @@ const Board = {
 
     async useInvite(token) {
         await pool.query(
-            `UPDATE board_invite SET used = TRUE WHERE token = $1`,
+            `UPDATE board_invites SET used = TRUE WHERE token = $1`,
             [token]
         );
     },
