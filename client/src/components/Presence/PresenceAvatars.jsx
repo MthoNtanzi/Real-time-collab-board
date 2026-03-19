@@ -16,7 +16,7 @@ export default function PresenceAvatars() {
                 {otherUsers.slice(0, 4).map((user) => (
                     <div
                         key={user.id}
-                        className="w-8 h-8 rounded-full border-2 border-blue-800 flex items-center justify-center text-xs font-semibold"
+                        className="w-8 h-8 rounded-full border-2 border-gray-100 flex items-center justify-center text-xs font-semibold"
                         style={{ backgroundColor: user.avatar_color }}
                         title={user.name}
                     >
@@ -24,7 +24,7 @@ export default function PresenceAvatars() {
                     </div>
                 ))}
                 {otherUsers.length > 4 && (
-                    <div className="w-8 h-8 rounded-full border-2 border-blue-800 bg-blue-700 flex items-center justify-center text-xs font-semibold text-gray-300">
+                    <div className="w-8 h-8 rounded-full border-2 border-gray-100 bg-blue-200 flex items-center justify-center text-xs font-semibold text-gray-300">
                         +{otherUsers.length - 4}
                     </div>
                 )}

@@ -141,6 +141,18 @@ const useBoardStore = create((set, get) => ({
 
         try {
             await cardService.moveCard(cardId, { listId, position });
+
+            // Emit socket event for real-time sync
+            const { getSocket } = await import("../socket/socketClient");
+            const socket = getSocket();
+            if (socket) {
+                socket.emit("card:move", {
+                    cardId,
+                    listId,
+                    position,
+                    boardId: previousBoard.id,
+                });
+            }
         } catch (err) {
             set({ activeBoard: previousBoard });
             set({ error: err.response?.data?.error || "Failed to move card" });

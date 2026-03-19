@@ -2,13 +2,15 @@ import { useState, useEffect } from "react";
 import useAuthStore from "../../store/authStore";
 import useBoardStore from "../../store/boardStore";
 import cardService from "../../services/cardService";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 export default function CardModal({ cardId, listId, onClose }) {
     const [card, setCard] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
-    const [dueDate, setDueDate] = useState("");
+    const [dueDate, setDueDate] = useState(null);
     const [commentBody, setCommentBody] = useState("");
     const [isEditing, setIsEditing] = useState(false);
     const currentUser = useAuthStore((state) => state.user);
@@ -24,7 +26,7 @@ export default function CardModal({ cardId, listId, onClose }) {
             setCard(data);
             setTitle(data.title);
             setDescription(data.description || "");
-            setDueDate(data.due_date ? new Date(data.due_date).toISOString().split("T")[0] : "");
+            setDueDate(data.due_date ? new Date(data.due_date) : null);
             setIsLoading(false);
         };
         fetchCard();
@@ -34,7 +36,7 @@ export default function CardModal({ cardId, listId, onClose }) {
         const updated = await updateCard(cardId, {
             title: title.trim(),
             description: description.trim(),
-            dueDate: dueDate || null,
+            dueDate: dueDate ? dueDate.toISOString() : null,
         });
         if (updated) {
             setCard((prev) => ({ ...prev, ...updated }));
@@ -172,16 +174,19 @@ export default function CardModal({ cardId, listId, onClose }) {
                                     Due Date
                                 </label>
                                 {isEditing ? (
-                                    <input
-                                        type="date"
-                                        value={dueDate}
-                                        onChange={(e) => setDueDate(e.target.value)}
-                                        className="bg-blue-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors"
+                                    <DatePicker
+                                        selected={dueDate}
+                                        onChange={(date) => setDueDate(date)}
+                                        placeholderText="Select a due date"
+                                        dateFormat="MMMM d, yyyy"
+                                        isClearable
+                                        className="bg-blue-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 transition-colors w-full"
+                                        calendarClassName="bg-blue-900 border border-white/10 text-white"
                                     />
                                 ) : (
                                     <p className="text-sm text-gray-300">
-                                        {card.due_date
-                                            ? new Date(card.due_date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
+                                        {dueDate
+                                            ? dueDate.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })
                                             : <span className="text-gray-500 italic">No due date</span>
                                         }
                                     </p>

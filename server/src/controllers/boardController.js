@@ -72,10 +72,6 @@ const createInvite = async (req, res) => {
 
     const membership = await Board.isMember(id, req.user.id);
 
-    console.log("membership:", membership);
-    console.log("user id:", req.user.id);
-    console.log("board id:", id);
-
     if (!membership || membership.role !== "owner") {
         return res.status(403).json({ error: "Only the board owner can create invite links" });
     }

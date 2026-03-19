@@ -1,10 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import useBoardStore from "../store/boardStore";
+import useAuthStore from "../store/authStore";
 import { getSocket } from "../socket/socketClient";
 import Sidebar from "../components/UI/Sidebar";
 import PresenceAvatars from "../components/Presence/PresenceAvatars";
 import ListColumn from "../components/List/ListColumn";
+import boardService from "../services/boardService";
 import {
     DndContext,
     DragOverlay,
@@ -26,6 +28,9 @@ export default function BoardPage() {
     const handlePresenceUpdate = useBoardStore((state) => state.handlePresenceUpdate);
     const createList = useBoardStore((state) => state.createList);
     const isLoading = useBoardStore((state) => state.isLoading);
+    const currentUser = useAuthStore((state) => state.user);
+    const deleteBoard = useBoardStore((state) => state.deleteBoard);
+    const [copied, setCopied] = useState(false);
 
     const [showAddList, setShowAddList] = useState(false);
     const [listName, setListName] = useState("");
@@ -34,6 +39,11 @@ export default function BoardPage() {
     const [activeListId, setActiveListId] = useState(null);
 
     const [selectedCard, setSelectedCard] = useState(null);
+    const [inviteUrl, setInviteUrl] = useState(null);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+
+    const handleCardMovedRef = useRef(handleCardMoved);
+    const handlePresenceUpdateRef = useRef(handlePresenceUpdate);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -117,22 +127,54 @@ export default function BoardPage() {
         setActiveListId(null);
     };
 
+    const handleCreateInvite = async () => {
+        console.log("owner_id:", activeBoard.owner_id);
+        console.log("currentUser.id:", currentUser?.id);
+        console.log("match:", activeBoard.owner_id === currentUser?.id);
+        const data = await boardService.createInvite(id);
+        if (data) {
+            setInviteUrl(data.inviteUrl);
+            setShowInviteModal(true);
+        }
+    };
+
     useEffect(() => {
+        handleCardMovedRef.current = handleCardMoved;
+        handlePresenceUpdateRef.current = handlePresenceUpdate;
+    }, [handleCardMoved, handlePresenceUpdate]);
+
+    useEffect(() => {
+        console.log("BoardPage useEffect running, id:", id);
         fetchBoard(id);
 
         const socket = getSocket();
         if (socket) {
+            const joinBoard = () => {
+                socket.emit("board:join", id);
+            };
+
             socket.emit("board:join", id);
-            socket.on("card:moved", handleCardMoved);
-            socket.on("presence:update", handlePresenceUpdate);
+
+            const onCardMoved = (data) => {
+                console.log("card:moved received:", data);
+                handleCardMovedRef.current(data);
+            };
+            const onPresenceUpdate = (data) => handlePresenceUpdateRef.current(data);
+
+            socket.on("card:moved", onCardMoved);
+            socket.on("presence:update", onPresenceUpdate);
+            socket.on("connect", joinBoard);
+
+            return () => {
+                socket.emit("board:leave", id);
+                socket.off("card:moved", onCardMoved);
+                socket.off("presence:update", onPresenceUpdate);
+                socket.off("connect", joinBoard);
+                clearActiveBoard();
+            };
         }
 
         return () => {
-            if (socket) {
-                socket.emit("board:leave", id);
-                socket.off("card:moved", handleCardMoved);
-                socket.off("presence:update", handlePresenceUpdate);
-            }
             clearActiveBoard();
         };
     }, [id]);
@@ -172,6 +214,35 @@ export default function BoardPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
+                        {/* Invite Button */}
+                        {activeBoard.owner_id === currentUser?.id && (
+                            <button
+                                onClick={handleCreateInvite}
+                                className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 transition-colors px-3 py-1.5 rounded-lg text-sm font-medium"
+                            >
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                </svg>
+                                Invite
+                            </button>
+                        )}
+
+                        {/* Delete Button */}
+                        {activeBoard.owner_id === currentUser?.id && (
+                            <button
+                                onClick={async () => {
+                                    if (!window.confirm(`Delete "${activeBoard.name}" and everything in it?`)) return;
+                                    await deleteBoard(activeBoard.id);
+                                    navigate("/home");
+                                }}
+                                className="text-gray-400 hover:text-red-400 transition-colors p-1.5 rounded-lg hover:bg-white/10"
+                                title="Delete board"
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+                            </button>
+                        )}
                         <div>
                             <h1 className="text-lg font-bold">{activeBoard.name}</h1>
                             {activeBoard.description && (
@@ -276,6 +347,50 @@ export default function BoardPage() {
                     listId={selectedCard.listId}
                     onClose={() => setSelectedCard(null)}
                 />
+            )}
+
+            {showInviteModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+                    <div className="bg-blue-900 border border-white/10 rounded-2xl p-6 w-full max-w-md">
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-lg font-bold">Invite to board</h2>
+                            <button
+                                onClick={() => setShowInviteModal(false)}
+                                className="text-gray-400 hover:text-white transition-colors"
+                            >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <p className="text-sm text-gray-400 mb-4">
+                            Share this link with anyone you want to invite to this board. The link expires in 7 days.
+                        </p>
+
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                value={inviteUrl || ""}
+                                readOnly
+                                className="flex-1 bg-blue-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                            />
+                            <button
+                                onClick={() => {
+                                    navigator.clipboard.writeText(inviteUrl);
+                                    setCopied(true);
+                                    setTimeout(() => {
+                                        setCopied(false);
+                                        setShowInviteModal(false);
+                                    }, 1500);
+                                }}
+                                className="bg-indigo-600 hover:bg-indigo-500 transition-colors px-4 py-2 rounded-lg text-sm font-medium"
+                            >
+                                {copied ? "Copied!" : "Copy"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );
