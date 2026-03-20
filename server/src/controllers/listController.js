@@ -28,13 +28,11 @@ const updateList = async (req, res) => {
     }
 
     const list = await List.findById(id);
-    console.log("list:", list);
     if (!list) {
         return res.status(404).json({ error: "List not found" });
     }
 
     const membership = await Board.isMember(list.board_id, req.user.id);
-    console.log("membership:", membership);
     if (!membership) {
         return res.status(403).json({ error: "Access denied" });
     }

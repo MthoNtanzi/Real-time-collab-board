@@ -57,4 +57,28 @@ module.exports = function boardEvents(io, socket) {
             socket.emit("error", { message: "Failed to move card" });
         }
     });
+
+    socket.on("list:created", ({ list, boardId }) => {
+        socket.to(boardId).emit("list:created", { list, boardId });
+    });
+
+    socket.on("list:deleted", ({ listId, boardId }) => {
+        socket.to(boardId).emit("list:deleted", { listId, boardId });
+    });
+
+    socket.on("card:deleted", ({ cardId, listId, boardId }) => {
+        socket.to(boardId).emit("card:deleted", { cardId, listId, boardId });
+    });
+
+    socket.on("card:updated", ({ card, boardId }) => {
+        socket.to(boardId).emit("card:updated", { card, boardId });
+    });
+
+    socket.on("comment:created", ({ comment, cardId, boardId }) => {
+        socket.to(boardId).emit("comment:created", { comment, cardId, boardId });
+    });
+
+    socket.on("comment:deleted", ({ commentId, cardId, boardId }) => {
+        socket.to(boardId).emit("comment:deleted", { commentId, cardId, boardId });
+    });
 }

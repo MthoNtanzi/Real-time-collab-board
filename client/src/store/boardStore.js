@@ -58,6 +58,9 @@ const useBoardStore = create((set, get) => ({
                     lists: [...state.activeBoard.lists, { ...list, cards: [] }],
                 },
             }));
+            const { getSocket } = await import("../socket/socketClient");
+            const socket = getSocket();
+            if (socket) socket.emit("list:created", { list, boardId });
         } catch (err) {
             set({ error: err.response?.data?.error || "Failed to create list" });
         }
@@ -65,6 +68,7 @@ const useBoardStore = create((set, get) => ({
 
     deleteList: async (id) => {
         try {
+            const boardId = get().activeBoard?.id;
             await listService.deleteList(id);
             set((state) => ({
                 activeBoard: {
@@ -72,6 +76,9 @@ const useBoardStore = create((set, get) => ({
                     lists: state.activeBoard.lists.filter((l) => l.id !== id),
                 },
             }));
+            const { getSocket } = await import("../socket/socketClient");
+            const socket = getSocket();
+            if (socket) socket.emit("list:deleted", { listId: id, boardId });
         } catch (err) {
             set({ error: err.response?.data?.error || "Failed to delete list" });
         }
@@ -106,6 +113,7 @@ const useBoardStore = create((set, get) => ({
 
     deleteCard: async (id, listId) => {
         try {
+            const boardId = get().activeBoard?.id;
             await cardService.deleteCard(id);
             set((state) => ({
                 activeBoard: {
@@ -117,6 +125,9 @@ const useBoardStore = create((set, get) => ({
                     ),
                 },
             }));
+            const { getSocket } = await import("../socket/socketClient");
+            const socket = getSocket();
+            if (socket) socket.emit("card:deleted", { cardId: id, listId, boardId });
         } catch (err) {
             set({ error: err.response?.data?.error || "Failed to delete card" });
         }
@@ -205,6 +216,51 @@ const useBoardStore = create((set, get) => ({
         }));
     },
 
+    handleListCreated: ({ list }) => {
+        set((state) => ({
+            activeBoard: {
+                ...state.activeBoard,
+                lists: [...state.activeBoard.lists, { ...list, cards: [] }],
+            },
+        }));
+    },
+
+    handleListDeleted: ({ listId }) => {
+        set((state) => ({
+            activeBoard: {
+                ...state.activeBoard,
+                lists: state.activeBoard.lists.filter((l) => l.id !== listId),
+            },
+        }));
+    },
+
+    handleCardDeleted: ({ cardId, listId }) => {
+        set((state) => ({
+            activeBoard: {
+                ...state.activeBoard,
+                lists: state.activeBoard.lists.map((list) =>
+                    list.id === listId
+                        ? { ...list, cards: list.cards.filter((c) => c.id !== cardId) }
+                        : list
+                ),
+            },
+        }));
+    },
+
+    handleCardUpdated: ({ card }) => {
+        set((state) => ({
+            activeBoard: {
+                ...state.activeBoard,
+                lists: state.activeBoard.lists.map((list) => ({
+                    ...list,
+                    cards: list.cards.map((c) =>
+                        c.id === card.id ? { ...c, ...card } : c
+                    ),
+                })),
+            },
+        }));
+    },
+
     handlePresenceUpdate: ({ users }) => {
         set({ presenceUsers: users });
     },
@@ -216,15 +272,23 @@ const useBoardStore = create((set, get) => ({
     addComment: async (cardId, { body }) => {
         try {
             const comment = await cardService.createComment(cardId, { body });
+            const boardId = get().activeBoard?.id;
+            const { getSocket } = await import("../socket/socketClient");
+            const socket = getSocket();
+            if (socket) socket.emit("comment:created", { comment, cardId, boardId });
             return comment;
         } catch (err) {
             set({ error: err.response?.data?.error || "Failed to add comment" });
         }
     },
 
-    deleteComment: async (commentId) => {
+    deleteComment: async (commentId, cardId) => {
         try {
+            const boardId = get().activeBoard?.id;
             await cardService.deleteComment(commentId);
+            const { getSocket } = await import("../socket/socketClient");
+            const socket = getSocket();
+            if (socket) socket.emit("comment:deleted", { commentId, cardId, boardId });
         } catch (err) {
             set({ error: err.response?.data?.error || "Failed to delete comment" });
         }
@@ -233,6 +297,7 @@ const useBoardStore = create((set, get) => ({
     updateCard: async (cardId, { title, description, dueDate }) => {
         try {
             const updated = await cardService.updateCard(cardId, { title, description, dueDate });
+            const boardId = get().activeBoard?.id;
             set((state) => ({
                 activeBoard: {
                     ...state.activeBoard,
@@ -244,6 +309,9 @@ const useBoardStore = create((set, get) => ({
                     })),
                 },
             }));
+            const { getSocket } = await import("../socket/socketClient");
+            const socket = getSocket();
+            if (socket) socket.emit("card:updated", { card: updated, boardId });
             return updated;
         } catch (err) {
             set({ error: err.response?.data?.error || "Failed to update card" });

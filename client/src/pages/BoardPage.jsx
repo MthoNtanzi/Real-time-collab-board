@@ -48,6 +48,16 @@ export default function BoardPage() {
     const handleCardCreated = useBoardStore((state) => state.handleCardCreated);
     const handleCardCreatedRef = useRef(handleCardCreated);
 
+    const handleListCreated = useBoardStore((state) => state.handleListCreated);
+    const handleListDeleted = useBoardStore((state) => state.handleListDeleted);
+    const handleCardDeleted = useBoardStore((state) => state.handleCardDeleted);
+    const handleCardUpdated = useBoardStore((state) => state.handleCardUpdated);
+
+    const handleListCreatedRef = useRef(handleListCreated);
+    const handleListDeletedRef = useRef(handleListDeleted);
+    const handleCardDeletedRef = useRef(handleCardDeleted);
+    const handleCardUpdatedRef = useRef(handleCardUpdated);
+
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
@@ -131,9 +141,6 @@ export default function BoardPage() {
     };
 
     const handleCreateInvite = async () => {
-        console.log("owner_id:", activeBoard.owner_id);
-        console.log("currentUser.id:", currentUser?.id);
-        console.log("match:", activeBoard.owner_id === currentUser?.id);
         const data = await boardService.createInvite(id);
         if (data) {
             setInviteUrl(data.inviteUrl);
@@ -151,7 +158,6 @@ export default function BoardPage() {
     }, [handleCardCreated]);
 
     useEffect(() => {
-        console.log("BoardPage useEffect running, id:", id);
         fetchBoard(id);
 
         const socket = getSocket();
@@ -163,17 +169,23 @@ export default function BoardPage() {
             socket.emit("board:join", id);
 
             const onCardMoved = (data) => {
-                console.log("card:moved received:", data);
                 handleCardMovedRef.current(data);
             };
             const onPresenceUpdate = (data) => handlePresenceUpdateRef.current(data);
             const onCardCreated = (data) => handleCardCreatedRef.current(data);
-
+            const onListCreated = (data) => handleListCreatedRef.current(data);
+            const onListDeleted = (data) => handleListDeletedRef.current(data);
+            const onCardDeleted = (data) => handleCardDeletedRef.current(data);
+            const onCardUpdated = (data) => handleCardUpdatedRef.current(data);
 
             socket.on("card:moved", onCardMoved);
             socket.on("presence:update", onPresenceUpdate);
             socket.on("connect", joinBoard);
             socket.on("card:created", onCardCreated);
+            socket.on("list:created", onListCreated);
+            socket.on("list:deleted", onListDeleted);
+            socket.on("card:deleted", onCardDeleted);
+            socket.on("card:updated", onCardUpdated);
 
             return () => {
                 socket.emit("board:leave", id);
@@ -181,6 +193,10 @@ export default function BoardPage() {
                 socket.off("presence:update", onPresenceUpdate);
                 socket.off("connect", joinBoard);
                 socket.off("card:created", onCardCreated);
+                socket.off("list:created", onListCreated);
+                socket.off("list:deleted", onListDeleted);
+                socket.off("card:deleted", onCardDeleted);
+                socket.off("card:updated", onCardUpdated);
                 clearActiveBoard();
             };
         }
@@ -197,6 +213,14 @@ export default function BoardPage() {
         setListName("");
         setShowAddList(false);
     };
+
+
+    useEffect(() => {
+        handleListCreatedRef.current = handleListCreated;
+        handleListDeletedRef.current = handleListDeleted;
+        handleCardDeletedRef.current = handleCardDeleted;
+        handleCardUpdatedRef.current = handleCardUpdated;
+    }, [handleListCreated, handleListDeleted, handleCardDeleted, handleCardUpdated]);
 
     if (isLoading || !activeBoard) {
         return (

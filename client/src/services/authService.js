@@ -4,7 +4,6 @@ const authService = {
     async register({ name, email, password }) {
         try {
             const res = await api.post("/auth/register", { name, email, password });
-            console.log("Register response:", res.data);
 
             const token = res.data?.token || res.data?.data?.token;
             const user = res.data?.user || res.data?.data?.user;
@@ -20,7 +19,6 @@ const authService = {
     async login({ email, password }) {
         try {
             const res = await api.post("/auth/login", { email, password });
-            console.log("Login response:", res.data);
 
             const token = res.data?.token || res.data?.data?.token;
             const user = res.data?.user || res.data?.data?.user;
