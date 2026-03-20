@@ -31,7 +31,7 @@ export default function ListColumn({ list, boardId, onCardClick }) {
         <div className="w-72 flex-shrink-0 bg-blue-600 rounded-xl flex p-3 flex-col max-h-[calc(100vh-10rem)]">
             {/* List Header */}
             <div className="flex items-center justify-between bg-indigo-600 px-4 py-3 rounded-full">
-                <h3 className="font-bold text-sm text-white">{list.name}</h3>
+                <h3 className="font-bold text-sm text-white truncate">{list.name}</h3>
                 <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400">{list.cards.length}</span>
                     <button

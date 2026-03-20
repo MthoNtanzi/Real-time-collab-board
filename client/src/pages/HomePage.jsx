@@ -7,6 +7,7 @@ export default function HomePage() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [boardName, setBoardName] = useState("");
     const [boardDescription, setBoardDescription] = useState("");
+    const [boardNameError, setBoardNameError] = useState("");
     const boards = useBoardStore((state) => state.boards);
     const fetchBoards = useBoardStore((state) => state.fetchBoards);
     const createBoard = useBoardStore((state) => state.createBoard);
@@ -19,7 +20,11 @@ export default function HomePage() {
 
     const handleCreateBoard = async (e) => {
         e.preventDefault();
-        if (!boardName.trim()) return;
+        if (!boardName.trim()) {
+            setBoardNameError("Board name is required");
+            return;
+        }
+        setBoardNameError("");
         const board = await createBoard({ name: boardName, description: boardDescription });
         if (board) {
             setBoardName("");
@@ -125,11 +130,17 @@ export default function HomePage() {
                                 <input
                                     type="text"
                                     value={boardName}
-                                    onChange={(e) => setBoardName(e.target.value)}
+                                    onChange={(e) => {
+                                        setBoardName(e.target.value);
+                                        if (e.target.value.trim()) setBoardNameError("");
+                                    }}
                                     placeholder="e.g. Marketing Campaign"
                                     autoFocus
                                     className="w-full bg-blue-800 border border-white/10 rounded-lg px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-indigo-500 transition-colors"
                                 />
+                                {boardNameError && (
+                                    <p className="text-red-400 text-xs mt-1">{boardNameError}</p>
+                                )}
                             </div>
                             <div>
                                 <label className="text-sm text-gray-400 mb-1.5 block">

@@ -40,7 +40,7 @@ export default function CardItem({ card, listId, onCardClick }) {
             onClick={() => onCardClick({ cardId: card.id, listId })}
         >
             <div className="flex items-start justify-between gap-2">
-                <p className="text-sm text-white leading-snug">{card.title}</p>
+                <p className="text-sm text-white truncate leading-snug line-clamp-2">{card.title}</p>
                 {showDelete && (
                     <button
                         onClick={handleDelete}

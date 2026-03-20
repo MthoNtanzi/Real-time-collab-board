@@ -122,11 +122,29 @@ export default function BoardPage() {
         const activeId = active.id;
         const overId = over.id;
 
+        // If dropped on itself, do nothing
+        if (activeId === overId) {
+            setActiveCard(null);
+            setActiveListId(null);
+            return;
+        }
+
         const overList = activeBoard.lists.find(
             (l) => l.id === overId || l.cards.some((c) => c.id === overId)
         );
 
         if (!overList) {
+            setActiveCard(null);
+            setActiveListId(null);
+            return;
+        }
+
+        // Check if card is already in this list at the same position
+        const currentCard = activeBoard.lists
+            .flatMap((l) => l.cards)
+            .find((c) => c.id === activeId);
+
+        if (currentCard?.list_id === overList.id && currentCard?.position === newPosition) {
             setActiveCard(null);
             setActiveListId(null);
             return;
@@ -151,6 +169,15 @@ export default function BoardPage() {
             setShowInviteModal(true);
         }
     };
+
+    useEffect(() => {
+        if (activeBoard) {
+            document.title = `${activeBoard.name} | Taskward`;
+        }
+        return () => {
+            document.title = "Taskward";
+        };
+    }, [activeBoard]);
 
     useEffect(() => {
         const handleOnline = () => {
@@ -340,7 +367,7 @@ export default function BoardPage() {
                             </button>
                         )}
                         <div>
-                            <h1 className="text-lg font-bold">{activeBoard.name}</h1>
+                            <h1 className="text-lg font-bold truncate max-w-xs">{activeBoard.name}</h1>
                             {activeBoard.description && (
                                 <p className="text-gray-400 text-xs mt-0.5">{activeBoard.description}</p>
                             )}
