@@ -5,20 +5,24 @@ const getBoards = async (req, res) => {
     res.json(boards);
 };
 
-const getBoard = async (req, res) => {
-    const { id } = req.params;
+const getBoard = async (req, res, next) => {
+    try {
+        const { id } = req.params;
 
-    const membership = await Board.isMember(id, req.user.id);
-    if (!membership) {
-        return res.status(403).json({ error: "Access denied" })
+        const membership = await Board.isMember(id, req.user.id);
+        if (!membership) {
+            return res.status(403).json({ error: "Access denied" })
+        }
+
+        const board = await Board.findIdWithLists(id);
+        if (!board) {
+            return res.status(404).json({ error: "Board not found" });
+        }
+
+        res.json(board);
+    } catch (err) {
+        next(err);
     }
-
-    const board = await Board.findIdWithLists(id);
-    if (!board) {
-        return res.status(404).json({ error: "Board not found" });
-    }
-
-    res.json(board);
 }
 
 const createBoard = async (req, res) => {

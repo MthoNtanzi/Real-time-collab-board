@@ -33,21 +33,25 @@ const createCard = async (req, res) => {
     res.status(201).json(card);
 };
 
-const getCard = async (req, res) => {
-    const { id } = req.params;
+const getCard = async (req, res, next) => {
+    try {
+        const { id } = req.params;
 
-    const card = await Card.findById(id);
-    if (!card) {
-        return res.status(404).json({ error: "Card not found" });
+        const card = await Card.findById(id);
+        if (!card) {
+            return res.status(404).json({ error: "Card not found" });
+        }
+
+        const membership = await Board.isMember(card.board_id, req.user.id);
+        if (!membership) {
+            return res.status(403).json({ error: "Access denied" });
+        }
+
+        const cardWithComments = await Card.findByIdWithComments(id);
+        res.json(cardWithComments);
+    } catch (err) {
+        next(err);
     }
-
-    const membership = await Board.isMember(card.board_id, req.user.id);
-    if (!membership) {
-        return res.status(403).json({ error: "Access denied" });
-    }
-
-    const cardWithComments = await Card.findByIdWithComments(id);
-    res.json(cardWithComments);
 };
 
 const updateCard = async (req, res) => {

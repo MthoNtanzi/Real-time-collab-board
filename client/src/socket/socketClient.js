@@ -29,11 +29,11 @@ export function connectSocket() {
     });
 
     socket.on("connect", () => {
-        console.log("Socket connected:", socket.id);
+        console.info("Socket connected:", socket.id);
     });
 
     socket.on("disconnect", (reason) => {
-        console.log("Socket disconnected:", reason);
+        console.warn("Socket disconnected:", reason);
     });
 }
 

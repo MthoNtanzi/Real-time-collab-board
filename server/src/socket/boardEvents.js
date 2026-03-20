@@ -39,9 +39,6 @@ module.exports = function boardEvents(io, socket) {
     });
 
     socket.on("card:move", async ({ cardId, listId, position, boardId }) => {
-        console.log(`Card move received from ${socket.user.name}`);
-        console.log("Broadcasting to room:", boardId);
-        console.log("Users in room:", io.sockets.adapter.rooms.get(boardId)?.size);
         try {
             const moved = await Card.move(cardId, { listId, position });
             socket.to(boardId).emit("card:moved", {
@@ -51,9 +48,8 @@ module.exports = function boardEvents(io, socket) {
                 boardId,
                 movedBy: socket.user,
             });
-            console.log("Broadcast sent");
         } catch (err) {
-            console.log("Card move error:", err);
+            console.error("Card move error:", err);
             socket.emit("error", { message: "Failed to move card" });
         }
     });

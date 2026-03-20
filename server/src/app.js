@@ -6,6 +6,7 @@ const listRoutes = require("./routes/listRoutes");
 const cardRoutes = require("./routes/cardRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 const errorHandler = require("./middleware/errorHandler");
+const validateId = require("./middleware/validateId");
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.use(cors({
 }));
 
 app.use(express.json());
+app.use(validateId);
 
 // Health check
 app.get("/health", (req, res) => res.json({ status: "ok" }));
