@@ -45,6 +45,9 @@ export default function BoardPage() {
     const handleCardMovedRef = useRef(handleCardMoved);
     const handlePresenceUpdateRef = useRef(handlePresenceUpdate);
 
+    const handleCardCreated = useBoardStore((state) => state.handleCardCreated);
+    const handleCardCreatedRef = useRef(handleCardCreated);
+
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
@@ -144,6 +147,10 @@ export default function BoardPage() {
     }, [handleCardMoved, handlePresenceUpdate]);
 
     useEffect(() => {
+        handleCardCreatedRef.current = handleCardCreated;
+    }, [handleCardCreated]);
+
+    useEffect(() => {
         console.log("BoardPage useEffect running, id:", id);
         fetchBoard(id);
 
@@ -160,16 +167,20 @@ export default function BoardPage() {
                 handleCardMovedRef.current(data);
             };
             const onPresenceUpdate = (data) => handlePresenceUpdateRef.current(data);
+            const onCardCreated = (data) => handleCardCreatedRef.current(data);
+
 
             socket.on("card:moved", onCardMoved);
             socket.on("presence:update", onPresenceUpdate);
             socket.on("connect", joinBoard);
+            socket.on("card:created", onCardCreated);
 
             return () => {
                 socket.emit("board:leave", id);
                 socket.off("card:moved", onCardMoved);
                 socket.off("presence:update", onPresenceUpdate);
                 socket.off("connect", joinBoard);
+                socket.off("card:created", onCardCreated);
                 clearActiveBoard();
             };
         }

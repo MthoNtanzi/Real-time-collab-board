@@ -34,13 +34,17 @@ module.exports = function boardEvents(io, socket) {
         console.log(`${socket.user.name} left board ${boardId}`);
     });
 
+    socket.on("card:created", ({ card, boardId }) => {
+        socket.to(boardId).emit("card:created", { card, boardId });
+    });
+
     socket.on("card:move", async ({ cardId, listId, position, boardId }) => {
         console.log(`Card move received from ${socket.user.name}`);
         console.log("Broadcasting to room:", boardId);
         console.log("Users in room:", io.sockets.adapter.rooms.get(boardId)?.size);
         try {
             const moved = await Card.move(cardId, { listId, position });
-            io.to(boardId).emit("card:moved", {
+            socket.to(boardId).emit("card:moved", {
                 cardId,
                 listId,
                 position,

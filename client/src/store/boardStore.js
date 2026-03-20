@@ -91,6 +91,14 @@ const useBoardStore = create((set, get) => ({
                     ),
                 },
             }));
+
+            // Emit socket event
+            const { getSocket } = await import("../socket/socketClient");
+            const socket = getSocket();
+            if (socket) {
+                socket.emit("card:created", { card, boardId });
+            }
+
         } catch (err) {
             set({ error: err.response?.data?.error || "Failed to create card" });
         }
@@ -160,6 +168,19 @@ const useBoardStore = create((set, get) => ({
     },
 
     // Socket actions
+    handleCardCreated: ({ card }) => {
+        set((state) => ({
+            activeBoard: {
+                ...state.activeBoard,
+                lists: state.activeBoard.lists.map((list) =>
+                    list.id === card.list_id
+                        ? { ...list, cards: [...list.cards, card] }
+                        : list
+                ),
+            },
+        }));
+    },
+
     handleCardMoved: ({ cardId, listId, position }) => {
         const state = get();
         const previousBoard = state.activeBoard;
