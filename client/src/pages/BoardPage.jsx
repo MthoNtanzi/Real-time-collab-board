@@ -32,6 +32,7 @@ export default function BoardPage() {
     const deleteBoard = useBoardStore((state) => state.deleteBoard);
     const [copied, setCopied] = useState(false);
     const error = useBoardStore((state) => state.error);
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     const [isOnline, setIsOnline] = useState(true);
     const [socketConnected, setSocketConnected] = useState(true);
@@ -140,6 +141,13 @@ export default function BoardPage() {
         }
 
         // Check if card is already in this list at the same position
+        const overCards = overList.cards;
+        const overIndex = overCards.findIndex((c) => c.id === overId);
+        const newPosition = overIndex >= 0
+            ? (overCards[overIndex - 1]?.position + overCards[overIndex]?.position) / 2 ||
+            overCards[overIndex].position - 1
+            : (overCards[overCards.length - 1]?.position || 0) + 1;
+
         const currentCard = activeBoard.lists
             .flatMap((l) => l.cards)
             .find((c) => c.id === activeId);
@@ -149,13 +157,6 @@ export default function BoardPage() {
             setActiveListId(null);
             return;
         }
-
-        const overCards = overList.cards;
-        const overIndex = overCards.findIndex((c) => c.id === overId);
-        const newPosition = overIndex >= 0
-            ? (overCards[overIndex - 1]?.position + overCards[overIndex]?.position) / 2 ||
-            overCards[overIndex].position - 1
-            : (overCards[overCards.length - 1]?.position || 0) + 1;
 
         moveCard(activeId, { listId: overList.id, position: newPosition });
         setActiveCard(null);
@@ -181,11 +182,9 @@ export default function BoardPage() {
 
     useEffect(() => {
         const handleOnline = () => {
-            console.log("online event fired");
             setIsOnline(true);
         }
         const handleOffline = () => {
-            console.log("offline event fired");
             setIsOnline(false);
         }
 
@@ -212,9 +211,7 @@ export default function BoardPage() {
 
         const socket = getSocket();
         if (socket) {
-            const joinBoard = () => {
-                socket.emit("board:join", id);
-            };
+
 
             socket.emit("board:join", id);
 
@@ -237,7 +234,6 @@ export default function BoardPage() {
 
             socket.on("card:moved", onCardMoved);
             socket.on("presence:update", onPresenceUpdate);
-            socket.on("connect", joinBoard);
             socket.on("card:created", onCardCreated);
             socket.on("list:created", onListCreated);
             socket.on("list:deleted", onListDeleted);
@@ -250,7 +246,6 @@ export default function BoardPage() {
                 socket.emit("board:leave", id);
                 socket.off("card:moved", onCardMoved);
                 socket.off("presence:update", onPresenceUpdate);
-                socket.off("connect", joinBoard);
                 socket.off("card:created", onCardCreated);
                 socket.off("list:created", onListCreated);
                 socket.off("list:deleted", onListDeleted);
@@ -286,7 +281,7 @@ export default function BoardPage() {
     if (isLoading) {
         return (
             <div className="flex min-h-screen bg-blue-800">
-                <Sidebar />
+                <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <div className="flex-1 flex items-center justify-center">
                     <div className="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin" />
                 </div>
@@ -297,7 +292,7 @@ export default function BoardPage() {
     if (!activeBoard) {
         return (
             <div className="flex min-h-screen bg-blue-800">
-                <Sidebar />
+                <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
                 <div className="flex-1 flex items-center justify-center px-4">
                     <div className="text-center">
                         <div className="w-16 h-16 bg-blue-900 rounded-2xl flex items-center justify-center mx-auto mb-4">
@@ -309,6 +304,14 @@ export default function BoardPage() {
                         <p className="text-red-400 text-sm mb-6">
                             {error || "This board doesn't exist or you don't have access to it."}
                         </p>
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden text-gray-400 hover:text-white transition-colors"
+                        >
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
                         <button
                             onClick={() => navigate("/home")}
                             className="bg-indigo-600 hover:bg-indigo-500 hover:text-white transition-colors px-6 py-2.5 rounded-lg text-sm font-medium"
@@ -323,12 +326,13 @@ export default function BoardPage() {
 
     return (
         <div className="flex min-h-screen bg-blue-800 text-white">
-            <Sidebar />
+            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="flex-1 flex flex-col min-w-0">
                 {/* Board Header */}
                 <div className="flex items-center justify-between px-8 py-5 border-b border-white/10">
-                    <div className="flex items-center gap-4">
+
+                    <div className="flex items-center justify-between gap-2 mr-8">
                         <button
                             onClick={() => navigate("/home")}
                             className="text-gray-400 hover:text-white transition-colors"
@@ -337,6 +341,14 @@ export default function BoardPage() {
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                             </svg>
                         </button>
+                        <div>
+                            <h1 className="text-lg font-bold truncate max-w-xs">{activeBoard.name}</h1>
+                            {activeBoard.description && (
+                                <p className="text-gray-400 text-xs mt-0.5">{activeBoard.description}</p>
+                            )}
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
                         {/* Invite Button */}
                         {activeBoard.owner_id === currentUser?.id && (
                             <button
@@ -366,14 +378,17 @@ export default function BoardPage() {
                                 </svg>
                             </button>
                         )}
-                        <div>
-                            <h1 className="text-lg font-bold truncate max-w-xs">{activeBoard.name}</h1>
-                            {activeBoard.description && (
-                                <p className="text-gray-400 text-xs mt-0.5">{activeBoard.description}</p>
-                            )}
-                        </div>
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden text-gray-400 hover:text-white transition-colors"
+                        >
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                        <PresenceAvatars />
                     </div>
-                    <PresenceAvatars />
+
                 </div>
 
                 {!isOnline && (
@@ -394,7 +409,7 @@ export default function BoardPage() {
                 )}
 
                 {/* Lists */}
-                <div className="flex-1 overflow-x-auto px-8 py-6">
+                <div className="flex-1 overflow-x-auto">
                     <DndContext
                         sensors={sensors}
                         collisionDetection={closestCorners}
@@ -402,21 +417,23 @@ export default function BoardPage() {
                         onDragOver={handleDragOver}
                         onDragEnd={handleDragEnd}
                     >
-                        <div className="flex gap-4 h-full items-start">
-                            {activeBoard.lists.map((list) => (
-                                <ListColumn key={list.id} list={list} boardId={id} onCardClick={setSelectedCard} />
-                            ))}
+                        <div className="px-8 py-6 min-w-max">
+                            <div className="flex gap-4 items-start">
+                                {activeBoard.lists.map((list) => (
+                                    <ListColumn key={list.id} list={list} boardId={id} onCardClick={setSelectedCard} />
+                                ))}
 
-                            {/* Add List Button */}
-                            <button
-                                onClick={() => setShowAddList(true)}
-                                className="w-72 flex-shrink-0 bg-blue-900/50 border border-white/10 border-dashed rounded-xl p-4 flex items-center gap-2 text-gray-400 hover:text-white hover:border-white/20 transition-all"
-                            >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                                </svg>
-                                Add a list
-                            </button>
+                                {/* Add List Button */}
+                                <button
+                                    onClick={() => setShowAddList(true)}
+                                    className="w-72 flex-shrink-0 bg-blue-900/70 border border-white/10 border-dashed rounded-xl p-4 flex items-center gap-2 text-gray-400 hover:text-white hover:border-white/20 transition-all"
+                                >
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                    </svg>
+                                    Add a list
+                                </button>
+                            </div>
                         </div>
 
                         <DragOverlay>
@@ -481,57 +498,61 @@ export default function BoardPage() {
                 )
             }
 
-            {selectedCard && (
-                <CardModal
-                    cardId={selectedCard.cardId}
-                    listId={selectedCard.listId}
-                    onClose={() => setSelectedCard(null)}
-                />
-            )}
+            {
+                selectedCard && (
+                    <CardModal
+                        cardId={selectedCard.cardId}
+                        listId={selectedCard.listId}
+                        onClose={() => setSelectedCard(null)}
+                    />
+                )
+            }
 
-            {showInviteModal && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
-                    <div className="bg-blue-900 border border-white/10 rounded-2xl p-6 w-full max-w-md">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-bold">Invite to board</h2>
-                            <button
-                                onClick={() => setShowInviteModal(false)}
-                                className="text-gray-400 hover:text-white transition-colors"
-                            >
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
+            {
+                showInviteModal && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+                        <div className="bg-blue-900 border border-white/10 rounded-2xl p-6 w-full max-w-md">
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-lg font-bold">Invite to board</h2>
+                                <button
+                                    onClick={() => setShowInviteModal(false)}
+                                    className="text-gray-400 hover:text-white transition-colors"
+                                >
+                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
 
-                        <p className="text-sm text-gray-400 mb-4">
-                            Share this link with anyone you want to invite to this board. The link expires in 7 days.
-                        </p>
+                            <p className="text-sm text-gray-400 mb-4">
+                                Share this link with anyone you want to invite to this board. The link expires in 7 days.
+                            </p>
 
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                value={inviteUrl || ""}
-                                readOnly
-                                className="flex-1 bg-blue-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
-                            />
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(inviteUrl);
-                                    setCopied(true);
-                                    setTimeout(() => {
-                                        setCopied(false);
-                                        setShowInviteModal(false);
-                                    }, 1500);
-                                }}
-                                className="bg-indigo-600 hover:bg-indigo-500 transition-colors px-4 py-2 rounded-lg text-sm font-medium"
-                            >
-                                {copied ? "Copied!" : "Copy"}
-                            </button>
+                            <div className="flex gap-2">
+                                <input
+                                    type="text"
+                                    value={inviteUrl || ""}
+                                    readOnly
+                                    className="flex-1 bg-blue-800 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none"
+                                />
+                                <button
+                                    onClick={() => {
+                                        navigator.clipboard.writeText(inviteUrl);
+                                        setCopied(true);
+                                        setTimeout(() => {
+                                            setCopied(false);
+                                            setShowInviteModal(false);
+                                        }, 1500);
+                                    }}
+                                    className="bg-indigo-600 hover:bg-indigo-500 transition-colors px-4 py-2 rounded-lg text-sm font-medium"
+                                >
+                                    {copied ? "Copied!" : "Copy"}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

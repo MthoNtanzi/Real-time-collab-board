@@ -28,9 +28,9 @@ export default function ListColumn({ list, boardId, onCardClick }) {
     };
 
     return (
-        <div className="w-72 flex-shrink-0 bg-blue-600 rounded-xl flex p-3 flex-col max-h-[calc(100vh-10rem)]">
+        <div className="w-72 flex-shrink-0 bg-blue-600 rounded-xl flex p-3 flex-col">
             {/* List Header */}
-            <div className="flex items-center justify-between bg-indigo-600 px-4 py-3 rounded-full">
+            <div className="flex items-center justify-between bg-indigo-600 px-4 py-3 mb-2 rounded-full">
                 <h3 className="font-bold text-sm text-white truncate">{list.name}</h3>
                 <div className="flex items-center gap-2">
                     <span className="text-xs text-gray-400">{list.cards.length}</span>
@@ -46,7 +46,7 @@ export default function ListColumn({ list, boardId, onCardClick }) {
             </div>
 
             {/* Cards */}
-            <div ref={setDroppableRef} className="flex-1 overflow-y-auto py-3 flex flex-col gap-2">
+            <div ref={setDroppableRef} className="flex-1 py-3 flex flex-col gap-2 overflow-y-auto max-h-[calc(90vh-14rem)]">
                 <SortableContext
                     items={list.cards.map((c) => c.id)}
                     strategy={verticalListSortingStrategy}

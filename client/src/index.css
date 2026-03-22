@@ -30,6 +30,12 @@
     scrollbar-color: rgba(99, 102, 241, 0.4) transparent;
 }
 
+html,
+body {
+    overflow-x: hidden;
+    height: 100%;
+}
+
 /* react-datepicker custom styles */
 .react-datepicker {
     background-color: #051120 !important;

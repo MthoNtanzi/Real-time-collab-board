@@ -13,6 +13,7 @@ export default function HomePage() {
     const createBoard = useBoardStore((state) => state.createBoard);
     const isLoading = useBoardStore((state) => state.isLoading);
     const navigate = useNavigate();
+    const [sidebarOpen, setSidebarOpen] = useState(false);
 
     useEffect(() => {
         fetchBoards();
@@ -36,7 +37,7 @@ export default function HomePage() {
 
     return (
         <div className="flex min-h-screen bg-blue-800 text-white">
-            <Sidebar />
+            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <main className="flex-1 p-8">
                 {/* Header */}
@@ -45,15 +46,25 @@ export default function HomePage() {
                         <h1 className="text-2xl font-bold">My Boards</h1>
                         <p className="text-gray-400 text-sm mt-1">Manage and collaborate on your projects</p>
                     </div>
-                    <button
-                        onClick={() => setShowCreateModal(true)}
-                        className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 transition-colors px-4 py-2.5 rounded-lg text-sm font-medium"
-                    >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                        </svg>
-                        New Board
-                    </button>
+                    <div className="flex items-center justify-between gap-4">
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 transition-colors px-2 py-2 rounded-lg text-sm font-medium"
+                        >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            Board
+                        </button>
+                        <button
+                            onClick={() => setSidebarOpen(true)}
+                            className="lg:hidden text-gray-400 hover:text-white transition-colors"
+                        >
+                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Boards Grid */}
@@ -83,16 +94,15 @@ export default function HomePage() {
                             <div
                                 key={board.id}
                                 onClick={() => navigate(`/board/${board.id}`)}
-                                className="bg-blue-900 border border-white/10 rounded-xl p-5 cursor-pointer hover:border-indigo-500/50 hover:bg-blue-900/80 transition-all group"
+                                className="bg-blue-600 border border-white/10 rounded-xl p-5 cursor-pointer hover:border-indigo-500/50 hover:bg-blue-900/80 transition-all group"
                             >
                                 <div className="flex items-start justify-between mb-3">
                                     <div
-                                        className="w-10 h-10 rounded-lg flex items-center justify-center text-lg font-bold"
-                                        style={{ backgroundColor: board.background_color }}
+                                        className="w-10 h-10 bg-indigo-500 rounded-lg flex items-center justify-center text-lg font-bold"
                                     >
                                         {board.name.charAt(0).toUpperCase()}
                                     </div>
-                                    <span className={`text-xs px-2 py-1 rounded-full ${board.role === "owner" ? "bg-indigo-500/20 text-indigo-300" : "bg-purple-500/20 text-purple-300"}`}>
+                                    <span className={`text-xs text-white px-2 py-1 rounded-full ${board.role === "owner" ? "bg-indigo-800/60 text-indigo-300" : "bg-purple-500/20 text-purple-300"}`}>
                                         {board.role}
                                     </span>
                                 </div>
