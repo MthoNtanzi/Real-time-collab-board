@@ -28,19 +28,19 @@ A real-time collaborative Kanban board built with React, Node.js, and Socket.IO.
 
 **Frontend**
 - React + Vite
-- Zustand — global state management
-- dnd-kit — drag and drop
-- Socket.IO client — real-time updates
-- Tailwind CSS — styling
-- Axios — HTTP client
-- react-datepicker — date selection
+- Zustand - global state management
+- dnd-kit - drag and drop
+- Socket.IO client - real-time updates
+- Tailwind CSS - styling
+- Axios - HTTP client
+- react-datepicker - date selection
 
 **Backend**
 - Node.js + Express
-- Socket.IO — WebSocket server
-- PostgreSQL — primary database
-- JWT — authentication
-- bcryptjs — password hashing
+- Socket.IO - WebSocket server
+- PostgreSQL - primary database
+- JWT - authentication
+- bcryptjs - password hashing
 
 ---
 
