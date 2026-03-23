@@ -6,6 +6,10 @@ const pool = new Pool({
   database: process.env.DB_NAME || "kanban_db",
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
+  connectionString: process.env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false,
+  },
 });
 
 pool.on("connect", () => {
