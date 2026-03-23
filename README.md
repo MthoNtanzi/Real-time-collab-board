@@ -14,13 +14,13 @@ A real-time collaborative Kanban board built with React, Node.js, and Socket.IO.
 
 ## Features
 
-- **Real-time collaboration** — card moves, list updates, and comments sync instantly across all connected users via WebSockets
-- **Drag and drop** — reorder cards within lists and move them between lists with smooth animations
-- **Board membership** — invite team members via shareable links with a 7-day expiry
-- **Card details** — add descriptions, due dates, and threaded comments to cards
-- **Presence indicators** — see who else is viewing the same board in real time
-- **JWT authentication** — secure register and login with persistent sessions
-- **Responsive layout** — works on desktop and mobile with a collapsible sidebar
+- **Real-time collaboration**: card moves, list updates, and comments sync instantly across all connected users via WebSockets
+- **Drag and drop**: reorder cards within lists and move them between lists with smooth animations
+- **Board membership**: invite team members via shareable links with a 7-day expiry
+- **Card details**: add descriptions, due dates, and threaded comments to cards
+- **Presence indicators**: see who else is viewing the same board in real time
+- **JWT authentication**: secure register and login with persistent sessions
+- **Responsive layout**: works on desktop and mobile with a collapsible sidebar
 
 ---
 
