@@ -75,7 +75,7 @@ The server never stores sessions. Every request carries a signed JWT token that 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/your-username/taskward.git
+git clone [https://github.com/your-username/taskward.git](https://github.com/MthoNtanzi/Real-time-collab-board)
 cd taskward
 ```
 
